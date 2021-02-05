@@ -1,0 +1,121 @@
+---
+title: "Data visualisation"
+author: "V.I.C. Smit"
+date: "2/4/2021"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(ggthemes)
+library(lattice)
+library(tidyverse)
+library(knitr)
+library(gridExtra)
+options(dplyr.summarise.inform = FALSE)
+```
+
+## A guest lecture about visualisation? 
+
+- Wait, who are you? 
+- Why should we care about data visualisation? 
+- What's wrong with this visualisation? 
+- How can we make better visualisations? 
+- Final remarks
+
+
+## Why should we care about data visualisation? 
+
+```{r, warnings = FALSE}
+data("barley")
+barley$year <- as.numeric(as.character(barley$year))
+kable(subset(barley, 
+             barley$variety == "Manchuria" | 
+               barley$variety == "Svansota" | 
+               barley$variety == "Galbron") %>% group_by(year)  %>% pivot_wider(names_from = site, values_from = yield), digits = 0)
+```
+
+## Oh, that's why we should care
+
+```{r cars, echo = FALSE}
+
+suppressWarnings(ggplot(data=subset(barley, 
+             barley$variety == "Manchuria" | 
+               barley$variety == "Svansota" | 
+               barley$variety == "Galbron"), aes(x=as.factor(year), y=yield, group=variety, color = variety)) + geom_path() + facet_wrap(~ site, ncol=3) + theme_classic() + scale_color_brewer()) +
+  xlab("year")
+```
+
+## Some more reasons to care, Anscombe's quartet
+
+```{r}
+kable(data.frame(x1 = anscombe$x1, y1 = anscombe$y1, x2 = anscombe$x2, y2 = anscombe$y2, x3 = anscombe$x3, y3 = anscombe$y3, x4 = anscombe$x4, y4= anscombe$y4 )[6:11,])
+
+```
+
+## Summary of Anscombe's quartet
+
+```{r}
+attach(anscombe)
+kable(data.frame(
+   MeanX = c(mean(x1), mean(x2), mean(x3), mean(x4)), 
+   MeanY = c(mean(y1), mean(y2), mean(y3), mean(y4)),
+   varX = c( var(x1), var(x2), var(x3), var(x4)), 
+   varY = c(var(y1), var(y2), var(y3), var(y4)), 
+   Correlations = c(cor(x1, y1), cor(x2, y2), cor(x3, y3), cor(x4, y4))
+))
+```
+
+
+## Anscombe's quartet, visualised
+
+```{r}
+p1 <- ggplot(anscombe, aes(x1, y1)) + geom_point() + geom_smooth(method = "lm", se = FALSE, color = "black", formula = y~x) + theme_classic()
+p2 <- ggplot(anscombe, aes(x2, y2)) + geom_point() + geom_smooth(method = "lm", se = FALSE, color = "black", 
+                                                                 formula = y~x) + theme_classic()
+p3 <- ggplot(anscombe, aes(x3, y3)) + geom_point() + geom_smooth(method = "lm", se = FALSE, color = "black", formula = y~x) + theme_classic()
+p4 <- ggplot(anscombe, aes(x4, y4)) + geom_point() + geom_smooth(method = "lm", se = FALSE, color = "black", formula = y~x) + theme_classic()
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+detach(anscombe)
+```
+
+## Conclusion
+
+- Looking at raw data is unnatractive 
+- Summary statistics may not reveal everything
+- Always visualise your data
+
+
+
+
+## Interactive: What's wrong with this figure? 
+
+![](images/Election2000.png){}
+
+##
+
+
+```{r}
+set.seed(18101996)
+bimodal_x <- seq(1, 3000)
+bimodal_y <- c(rnorm(1000, mean = 50, sd = 30), rnorm(1000, mean = 150, sd = 30), rnorm(1000, mean = 250, sd=30))
+bimodal <- data.frame(x = bimodal_x, y = bimodal_y)
+
+kable(bimodal[c(1:4, 196:200),])
+```
+
+
+```{r}
+p5 <- ggplot(bimodal) + geom_boxplot(aes(y)) + theme_classic()
+p6 <- ggplot(bimodal)+ geom_histogram(aes(y), bins = 90) + theme_classic()
+p7 <- ggplot(bimodal, aes(x, y)) + geom_violin(trim = FALSE) + theme_classic() + geom_boxplot(aes(y), alpha = 0.3) + coord_flip() 
+grid.arrange(p5, p6, p7)
+```
+
+
+
+
+
+
+
